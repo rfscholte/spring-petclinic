@@ -39,30 +39,34 @@ import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 /**
  * Test class for {@link OwnerController}
  *
  * @author Colin But
  */
-@WebMvcTest(OwnerController.class)
-class OwnerControllerTests {
+@ExtendWith(SpringExtension.class)
+class OwnerControllerNoBootTests {
 
 	private static final int TEST_OWNER_ID = 1;
 
 	@Autowired
 	private MockMvc mockMvc;
 
-	@MockBean
+	@Autowired
 	private OwnerRepository owners;
 
 	@Autowired
@@ -92,7 +96,7 @@ class OwnerControllerTests {
 		int beanDefinitionCount = context.getBeanDefinitionCount();
 		// System.out.println("context.getBeanDefinitionCount() is " + beanDefinitionCount
 		// + " " + Arrays.toString(context.getBeanDefinitionNames()) //
-		// ); //
+		// );
 	}
 
 	@BeforeEach
@@ -228,6 +232,24 @@ class OwnerControllerTests {
 						description.appendText("Max did not have any visits");
 					}
 				}))).andExpect(view().name("owners/ownerDetails"));
+	}
+
+	@Configuration
+	static class Config {
+
+		@MockBean
+		public OwnerRepository ownerRepository;
+
+		@Bean
+		public MockMvc mockMvc(OwnerController ownerController) {
+			return MockMvcBuilders.standaloneSetup(ownerController).build();
+		}
+
+		@Bean
+		public OwnerController ownerController() {
+			return new OwnerController(ownerRepository);
+		}
+
 	}
 
 }
